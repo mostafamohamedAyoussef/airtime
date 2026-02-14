@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtime — Insights</title>
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="analytics.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Top Navigation -->
+    <header class="nav-bar">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <div class="nav-air-sign">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 12C12 10.3 13.3 9 15 9C16.7 9 18 10.3 18 12C18 15.3 15.3 18 12 18C8.7 18 6 15.3 6 12C6 7.6 9.6 4 14 4"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <span class="nav-title">Airtime</span>
+            </div>
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-link">Focus</a>
+                <a href="#" class="nav-link active">Insights</a>
+                <a href="ledger.html" class="nav-link">Ledger</a>
+            </nav>
+            <div class="nav-actions">
+                <button class="nav-icon-btn" id="themeToggleBtn" title="Toggle Theme"><span
+                        class="material-symbols-outlined">dark_mode</span></button>
+                <button class="nav-icon-btn" id="btnSettings" title="Settings"><span
+                        class="material-symbols-outlined">settings</span></button>
+                <button class="nav-icon-btn" id="btnProfile" title="Profile"><span
+                        class="material-symbols-outlined">account_circle</span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="breadcrumb">
+                    <span class="material-symbols-outlined bc-icon">timeline</span>
+                    <span class="bc-text">HISTORICAL DATA</span>
+                </div>
+                <h1 class="page-title">Deep Dive</h1>
+            </div>
+            <!-- Date Filter Toggle -->
+            <div class="date-filter">
+                <button class="filter-btn active" data-range="7">7D</button>
+                <button class="filter-btn" data-range="30">30D</button>
+                <button class="filter-btn" data-range="all">YTD</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="analytics-grid">
+            <!-- Left Column: Metric Cards -->
+            <div class="metrics-col">
+                <!-- Total Logged Time -->
+                <div class="glass-card">
+                    <div class="card-bg-icon"><span class="material-symbols-outlined">schedule</span></div>
+                    <div class="card-content">
+                        <p class="card-label">TOTAL LOGGED TIME</p>
+                        <div class="card-value" id="totalTime">0<span class="unit">h</span> 0<span class="unit">m</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="trend-badge" id="timeTrend">
+                            <span class="material-symbols-outlined trend-arrow">trending_flat</span>
+                            <span id="timeTrendText">—</span>
+                        </span>
+                        <span class="trend-context" id="timeTrendCtx">vs. last period</span>
+                    </div>
+                </div>
+
+                <!-- Focus Index -->
+                <div class="glass-card">
+                    <div class="card-content-row">
+                        <div>
+                            <p class="card-label">FOCUS INDEX</p>
+                            <div class="card-value" id="focusIndex">0<span class="unit">/100</span></div>
+                        </div>
+                        <div class="radial-indicator" id="radialIndicator">
+                            <span class="material-symbols-outlined radial-icon">bolt</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="quality-row">
+                            <span class="quality-label">Quality</span>
+                            <span class="quality-value" id="qualityValue">—</span>
+                        </div>
+                        <div class="quality-bar">
+                            <div class="quality-fill" id="qualityFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Peak Flow State -->
+                <div class="glass-card">
+                    <div class="card-bg-icon"><span class="material-symbols-outlined">speed</span></div>
+                    <div class="card-content">
+                        <p class="card-label">PEAK FLOW STATE</p>
+                        <div class="card-value-time" id="peakTime">— <span class="unit">—</span> —</div>
+                    </div>
+                    <div class="sparkline" id="sparkline"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Heatmap + Allocation -->
+            <div class="charts-col">
+                <!-- Circadian Rhythm Heatmap -->
+                <div class="glass-card heatmap-card">
+                    <div class="heatmap-header">
+                        <h3 class="heatmap-title">
+                            <span class="hm-dot"></span>
+                            CIRCADIAN RHYTHM
+                        </h3>
+                        <div class="heatmap-legend">
+                            <div class="legend-item"><span class="legend-swatch offline"></span><span>Offline</span>
+                            </div>
+                            <div class="legend-item"><span
+                                    class="legend-swatch distracted"></span><span>Distracted</span></div>
+                            <div class="legend-item"><span class="legend-swatch focus"></span><span>Focus</span></div>
+                        </div>
+                    </div>
+                    <div class="heatmap-grid" id="heatmapGrid">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Productivity Allocation -->
+                <div class="glass-card allocation-card">
+                    <div class="allocation-header">
+                        <h3 class="allocation-title">PRODUCTIVITY ALLOCATION</h3>
+                        <div class="allocation-stats">
+                            <span class="alloc-focus" id="allocFocus">0% Focus</span>
+                            <span class="alloc-distract" id="allocDistract">0% Distraction</span>
+                        </div>
+                    </div>
+                    <div class="allocation-bar">
+                        <div class="alloc-fill-focus" id="allocBarFocus"></div>
+                        <div class="alloc-separator"></div>
+                        <div class="alloc-fill-distract" id="allocBarDistract"></div>
+                    </div>
+                    <div class="allocation-labels">
+                        <span>DEEP WORK</span>
+                        <span>NOISE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="utils.js"></script>
+    <script src="modals.js"></script>
+    <script src="analytics.js"></script>
+</body>
+
+</html>

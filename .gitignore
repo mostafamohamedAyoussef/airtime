@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Chrome Extension build files
+*.zip
+*.crx
+*.pem
+
+# Local assets/scratchpad
+promo_render.html
+store_assets/
+marquee_raw.png
+small_raw.png
+marquee_cropped.png
+small_cropped.png
+marquee_temp.png
+small_temp.png

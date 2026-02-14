@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airtime — The Pulse</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="popup.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="popup-container">
+    <!-- Background Gradient Mesh -->
+    <div class="bg-gradient"></div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="header-air-sign">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 12C12 10.3 13.3 9 15 9C16.7 9 18 10.3 18 12C18 15.3 15.3 18 12 18C8.7 18 6 15.3 6 12C6 7.6 9.6 4 14 4"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h1 class="header-title">AIRTIME</h1>
+      </div>
+      <div class="header-right">
+        <button id="themeToggleBtn" class="icon-btn-text" title="Toggle Theme"
+          style="background:none;border:none;cursor:pointer;color:inherit;margin-right:8px;padding:0;display:flex;align-items:center;">
+          <span class="material-symbols-outlined" style="font-size:16px;">dark_mode</span>
+        </button>
+        <span class="status-text" id="statusText">LIVE</span>
+        <span class="pulse-dot" id="statusDot"></span>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Current Context -->
+      <div class="context-section">
+        <p class="context-label">CURRENT CONTEXT</p>
+        <div class="domain-row">
+          <div class="domain-favicon" id="domainFavicon">
+            <span id="domainLetter">—</span>
+          </div>
+          <h2 class="domain-name" id="currentDomain">No active site</h2>
+        </div>
+      </div>
+
+      <!-- The Chronometer -->
+      <div class="chronometer">
+        <div class="chrono-line top"></div>
+        <div class="chrono-time" id="currentTimer">00:00:00</div>
+        <div class="chrono-line bottom"></div>
+      </div>
+
+      <!-- Classification Grid -->
+      <div class="classification-grid" id="classifyGrid" style="display:none;">
+        <button class="classify-btn" data-class="focus">
+          <span class="material-symbols-outlined">check_circle</span>
+          <span class="classify-label">Focus</span>
+        </button>
+        <button class="classify-btn" data-class="neutral">
+          <span class="material-symbols-outlined">remove_circle_outline</span>
+          <span class="classify-label">Neutral</span>
+        </button>
+        <button class="classify-btn distract" data-class="distract">
+          <span class="material-symbols-outlined">warning</span>
+          <span class="classify-label">Distract</span>
+        </button>
+      </div>
+
+      <!-- Open Dashboard Button -->
+      <div class="dashboard-action">
+        <button id="openDashboardBtn" class="action-btn">
+          <span>OPEN AIRTIME</span>
+          <span class="material-symbols-outlined">arrow_outward</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer / Focus Index -->
+    <footer class="footer">
+      <div class="footer-info">
+        <span class="footer-label">FOCUS INDEX</span>
+        <span class="footer-sub">Daily Average</span>
+      </div>
+      <div class="footer-score">
+        <span class="score-number" id="focusNumber">0</span>
+        <span class="score-delta" id="scoreDelta"></span>
+      </div>
+      <div class="score-bar">
+        <div class="score-bar-fill" id="scoreBarFill"></div>
+      </div>
+    </footer>
+
+    <!-- Decorative Corner Marks -->
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>

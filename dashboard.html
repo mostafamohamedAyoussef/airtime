@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtime — Focus</title>
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <div class="nav-air-sign">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 12C12 10.3 13.3 9 15 9C16.7 9 18 10.3 18 12C18 15.3 15.3 18 12 18C8.7 18 6 15.3 6 12C6 7.6 9.6 4 14 4"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <span class="nav-title">Airtime</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" id="navDashboard">Focus</a>
+                <a href="analytics.html" class="nav-link" id="navAnalytics">Insights</a>
+                <a href="ledger.html" class="nav-link" id="navLedger">Ledger</a>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-icon-btn" id="themeToggleBtn" title="Toggle Theme">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+                <div class="live-badge">
+                    <div class="live-dot"></div>
+                    <span class="live-text">LIVE</span>
+                </div>
+                <button class="nav-icon-btn" id="exportBtn" title="Export Data">
+                    <span class="material-symbols-outlined">download</span>
+                </button>
+                <button class="nav-icon-btn" id="btnSettings" title="Settings">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+                <button class="nav-icon-btn" id="btnProfile" title="Profile">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section: Focus Score -->
+        <section class="hero-section">
+            <!-- Glow behind number -->
+            <div class="score-glow"></div>
+            <div class="score-area">
+                <div class="current-site-logo" id="currentSiteLogo"></div>
+                <span class="score-label">FOCUS INDEX</span>
+                <h1 class="score-number" id="focusScore">0</h1>
+                <div class="score-trend" id="scoreTrend">
+                    <span class="material-symbols-outlined trend-icon">trending_up</span>
+                    <span class="trend-text" id="trendText">Collecting data...</span>
+                </div>
+            </div>
+
+            <!-- Date Toggle -->
+            <div class="date-toggle">
+                <button class="date-btn active" data-range="today">Today</button>
+                <button class="date-btn" data-range="yesterday">Yesterday</button>
+                <button class="date-btn" data-range="week">Week</button>
+            </div>
+
+            <!-- Trend Line (SVG Sparkline) -->
+            <div class="trend-line-container">
+                <span class="time-label left" id="timeStart">00:00</span>
+                <span class="time-label right" id="timeEnd">24:00</span>
+                <svg class="trend-svg" viewBox="0 0 800 100" preserveAspectRatio="none" id="trendSvg">
+                    <defs>
+                        <linearGradient id="gradientLine" x1="0" x2="1" y1="0" y2="0">
+                            <stop offset="0%" stop-color="#333333"></stop>
+                            <stop offset="100%" stop-color="#333333"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path id="trendPath" d="M0,90 L800,90" fill="none" stroke="url(#gradientLine)" stroke-width="1.5"
+                        stroke-linecap="square" opacity="0.6"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Top Sources Table -->
+        <section class="sources-section">
+            <div class="sources-header">
+                <h2 class="section-title">Top Sources</h2>
+                <div class="sources-actions">
+                    <button class="icon-btn" id="filterBtn">
+                        <span class="material-symbols-outlined">filter_list</span>
+                    </button>
+                    <button class="icon-btn" id="downloadBtn">
+                        <span class="material-symbols-outlined">download</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="col-domain">DOMAIN</div>
+                <div class="col-status">STATUS</div>
+                <div class="col-duration">DURATION</div>
+            </div>
+
+            <!-- Table Body -->
+            <div class="table-body" id="sitesTableBody">
+                <div class="empty-row">
+                    <span class="empty-text">No data recorded.</span>
+                </div>
+            </div>
+
+            <!-- View Ledger Button -->
+            <div class="view-ledger">
+                <a href="ledger.html" class="ledger-link">VIEW FULL LEDGER</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Background Noise Texture -->
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <script src="utils.js"></script>
+    <script src="modals.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
