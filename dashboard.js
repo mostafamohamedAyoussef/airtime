@@ -25,8 +25,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('downloadBtn').addEventListener('click', exportData);
 
     updateDashboard();
-    // Real-time tracker for the current site logo
-    setInterval(updateRunningStatus, 1000);
+    // Real-time tracker for the current site logo and score
+    setInterval(async () => {
+        await updateRunningStatus();
+        // Periodically refresh all data from storage to keep dashboard in sync
+        allData = await storageAPI.get(null);
+        updateDashboard();
+    }, 5000); // Refresh every 5 seconds
     updateRunningStatus();
 });
 

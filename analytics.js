@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     updateAnalytics();
+
+    // Periodically refresh analytics to show live progress
+    setInterval(async () => {
+        allData = await storageAPI.get(null);
+        updateAnalytics();
+    }, 10000); // Refresh every 10 seconds (analytics is heavier)
 });
 
 function updateAnalytics() {
