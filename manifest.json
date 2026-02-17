@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Airtime",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Your digital headquarters. Track focus, analyze insights, and audit your time with Airtime.",
   "permissions": [
     "tabs",

@@ -109,7 +109,14 @@ function updateContext(status, dayData) {
 
         // Show timer
         const siteData = dayData[status.domain];
-        const seconds = siteData ? siteData.time : 0;
+        let seconds = siteData ? siteData.time : 0;
+
+        // Add live tracking delta if currently tracking
+        if (status.isTracking && status.trackingStartTime) {
+            const liveDelta = Math.floor((Date.now() - status.trackingStartTime) / 1000);
+            if (liveDelta > 0) seconds += liveDelta;
+        }
+
         timerEl.textContent = formatTimeChrono(seconds);
 
         // Show classify buttons
