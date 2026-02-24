@@ -72,7 +72,14 @@ async function saveCurrentTime() {
     const effectiveIdle = isIdle && !isAudible;
     const effectiveUnfocused = !isWindowFocused && !isAudible;
 
-    if (!currentDomain || !trackingStartTime || effectiveIdle || effectiveUnfocused) return;
+    if (!currentDomain || !trackingStartTime) return;
+
+    if (effectiveIdle || effectiveUnfocused) {
+        // Paused state detected. Clear start time so we don't hold a ghost timer.
+        trackingStartTime = null;
+        await persistSession();
+        return;
+    }
 
     let elapsed = Math.floor((Date.now() - trackingStartTime) / 1000);
 
