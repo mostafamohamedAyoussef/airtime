@@ -110,14 +110,28 @@ function updateContext(status, dayData) {
         // Show timer
         const siteData = dayData[status.domain];
         let seconds = siteData ? siteData.time : 0;
+        let activeSeconds = siteData ? (siteData.activeTime !== undefined ? siteData.activeTime : seconds) : 0;
+        let passiveSeconds = siteData ? (siteData.passiveTime || 0) : 0;
 
         // Add live tracking delta if currently tracking
         if (status.isTracking && status.trackingStartTime) {
             const liveDelta = Math.floor((Date.now() - status.trackingStartTime) / 1000);
-            if (liveDelta > 0) seconds += liveDelta;
+            if (liveDelta > 0) {
+                seconds += liveDelta;
+                if (!status.isIdle) {
+                    activeSeconds += liveDelta;
+                } else {
+                    passiveSeconds += liveDelta;
+                }
+            }
         }
 
         timerEl.textContent = formatTimeChrono(seconds);
+
+        const splitEl = document.getElementById('activePassiveSplit');
+        if (splitEl) {
+            splitEl.textContent = `${formatTimeCompact(activeSeconds)} Active • ${formatTimeCompact(passiveSeconds)} Passive`;
+        }
 
         // Show classify buttons
         classifyGrid.style.display = 'grid';

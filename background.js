@@ -18,10 +18,23 @@ const IDLE_THRESHOLD = 60; // seconds before considered idle
 const SAVE_INTERVAL = 5; // save every 5 seconds
 const DATA_RETENTION_DAYS = 90;
 const SESSION_KEY = 'airtime_session';
+const MAX_TRACKABLE_CHUNK = 300; // 5 minutes max tracking chunk to prevent ghost sleep time
 
 // ============================================================
 // Core Tracking
 // ============================================================
+
+/**
+ * Check if ANY tab across all Chrome windows is audible
+ */
+async function checkAnyTabAudible() {
+    try {
+        const audibleTabs = await chrome.tabs.query({ audible: true });
+        return audibleTabs.length > 0;
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Start tracking a new domain
@@ -51,12 +64,26 @@ async function stopTracking() {
 async function saveCurrentTime() {
     if (!isInitialized) await initializeState();
 
-    // If idle but tab is audible (e.g. video playing), we continue tracking
+    // 1. Verify exact audible state globally before processing
+    const hasGlobalAudio = await checkAnyTabAudible();
+    isAudible = hasGlobalAudio; // sync state
+
+    // If idle or unfocused but a tab is globally audible (e.g. video playing in another window), we continue tracking
     const effectiveIdle = isIdle && !isAudible;
+    const effectiveUnfocused = !isWindowFocused && !isAudible;
 
-    if (!currentDomain || !trackingStartTime || effectiveIdle || !isWindowFocused) return;
+    if (!currentDomain || !trackingStartTime || effectiveIdle || effectiveUnfocused) return;
 
-    const elapsed = Math.floor((Date.now() - trackingStartTime) / 1000);
+    let elapsed = Math.floor((Date.now() - trackingStartTime) / 1000);
+
+    // 2. Sceeping/Suspend Bug Guard (The "10-Hour Ghost" Bug)
+    // If the elapsed time is massive (e.g. Chrome went to sleep and woke up 5 hours later),
+    // we cap it to our expected chunk size so it doesn't log 5 ghost hours to the website.
+    if (elapsed > MAX_TRACKABLE_CHUNK) {
+        console.warn(`Airtime: Unusually large time chunk detected (${elapsed}s). Capping to ${MAX_TRACKABLE_CHUNK}s to prevent sleep-ghosting.`);
+        elapsed = MAX_TRACKABLE_CHUNK;
+    }
+
     if (elapsed <= 0) return;
 
     const dateKey = getDateKey(new Date());
@@ -68,12 +95,23 @@ async function saveCurrentTime() {
         if (!dayData[currentDomain]) {
             dayData[currentDomain] = {
                 time: 0,
+                activeTime: 0,
+                passiveTime: 0,
                 visits: 0,
                 category: categorizeDomain(currentDomain)
             };
         }
 
         dayData[currentDomain].time += elapsed;
+
+        // Split metrics:
+        // If the user was NOT idle, the time spent is Active Time
+        // If the user WAS idle (but tab was audible, allowing tracking to continue), it's Passive Time
+        if (!isIdle) {
+            dayData[currentDomain].activeTime = (dayData[currentDomain].activeTime || 0) + elapsed;
+        } else {
+            dayData[currentDomain].passiveTime = (dayData[currentDomain].passiveTime || 0) + elapsed;
+        }
 
         await chrome.storage.local.set({ [dateKey]: dayData });
     } catch (e) {
@@ -118,21 +156,23 @@ async function initializeState() {
             trackingStartTime = session.trackingStartTime;
             isIdle = session.isIdle ?? false;
             isWindowFocused = session.isWindowFocused ?? true;
-            isAudible = session.isAudible ?? false;
+            isAudible = await checkAnyTabAudible(); // Fresh global audible check on wake
 
-            // If it's been a long time, maybe don't resume? 
-            // For now, let's resume if it's less than 30 mins ago
-            const THIRTY_MINS = 30 * 60 * 1000;
-            if (trackingStartTime && (Date.now() - session.lastUpdated > THIRTY_MINS)) {
-                // Stale session, save what we had and reset
-                await saveCurrentTime();
-                trackingStartTime = null;
-                currentDomain = null;
+            // 3. Suspend/Wake Drift Check
+            // If it's been more than 5 minutes since the `lastUpdated` heartbeat,
+            // Chrome likely Suspended the worker or the OS slept. 
+            // We shouldn't blindly resume the tracking start time from hours ago.
+            const SUSPEND_THRESHOLD = MAX_TRACKABLE_CHUNK * 1000;
+            if (trackingStartTime && session.lastUpdated && (Date.now() - session.lastUpdated > SUSPEND_THRESHOLD)) {
+                console.log('Airtime: Long suspend/sleep detected during initialization. Resetting track timer.');
+                // We DON'T call saveCurrentTime here to prevent the massive spike. 
+                // We just gently reset the timer for the current domain.
+                trackingStartTime = Date.now();
             }
         }
         await loadCategories();
         isInitialized = true;
-        console.log('Airtime: State initialized', { currentDomain, isIdle, isWindowFocused });
+        console.log('Airtime: State initialized', { currentDomain, isIdle, isWindowFocused, isAudible });
     } catch (e) {
         console.error('Airtime: Error initializing state', e);
         isInitialized = true; // Mark initialized anyway to avoid loops
@@ -193,6 +233,8 @@ async function handleTabChange(tabId) {
         }
 
         currentTabId = tabId;
+        isAudible = tab.audible || false;
+        await persistSession();
     } catch (e) {
         // Tab might have been closed
         await stopTracking();
@@ -219,9 +261,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             }
         }
 
-        // Track audible state for idle override
+        // Track global audible state
         if (changeInfo.audible !== undefined) {
-            isAudible = changeInfo.audible;
+            isAudible = await checkAnyTabAudible();
+            await persistSession();
+        }
+    } else {
+        // Even if it's not the active tab, another tab becoming audible/silent 
+        // affects our global `isAudible` state!
+        if (changeInfo.audible !== undefined) {
+            isAudible = await checkAnyTabAudible();
             await persistSession();
         }
     }
@@ -232,13 +281,19 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) {
         // Browser lost focus
         isWindowFocused = false;
-        await saveCurrentTime();
-        trackingStartTime = null;
+
+        // Only stop tracking if not audible
+        if (!isAudible) {
+            await saveCurrentTime();
+            trackingStartTime = null;
+        }
         await persistSession();
     } else {
         // Browser gained focus
         isWindowFocused = true;
-        if (currentDomain) {
+
+        // Start tracking only if it was stopped (not currently tracking)
+        if (currentDomain && !trackingStartTime) {
             trackingStartTime = Date.now();
         }
         await persistSession();
@@ -261,13 +316,21 @@ chrome.idle.setDetectionInterval(IDLE_THRESHOLD);
 chrome.idle.onStateChanged.addListener(async (state) => {
     if (state === 'idle' || state === 'locked') {
         isIdle = true;
-        await saveCurrentTime();
-        trackingStartTime = null;
+
+        // Only stop tracking if not audible
+        if (!isAudible) {
+            await saveCurrentTime();
+            trackingStartTime = null;
+        }
         await persistSession();
     } else if (state === 'active') {
         isIdle = false;
-        if (currentDomain && isWindowFocused) {
-            trackingStartTime = Date.now();
+
+        // Start tracking only if it was stopped (not currently tracking)
+        if (currentDomain && (isWindowFocused || isAudible)) {
+            if (!trackingStartTime) {
+                trackingStartTime = Date.now();
+            }
         }
         await persistSession();
     }
@@ -352,7 +415,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // We can't await initializeState here because the listener must return sync or true
         sendResponse({
             domain: currentDomain,
-            isTracking: !!trackingStartTime && (!isIdle || isAudible) && isWindowFocused,
+            isTracking: !!trackingStartTime && ((!isIdle && isWindowFocused) || isAudible),
             isIdle,
             isAudible,
             isWindowFocused,

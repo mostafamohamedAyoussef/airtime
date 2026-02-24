@@ -139,6 +139,21 @@ function updateFocusScore(merged, dateKeys) {
         trendIcon.textContent = 'schedule';
         trendIcon.style.color = '#666';
     }
+
+    // Update Global Split Text
+    const splitEl = document.getElementById('globalSplit');
+    if (splitEl) {
+        const dataToSplit = selectedRange === 'today' ? todayData : merged;
+        let totalActive = 0;
+        let totalPassive = 0;
+
+        for (const [domain, info] of Object.entries(dataToSplit)) {
+            totalActive += (info.activeTime !== undefined ? info.activeTime : (info.time || 0));
+            totalPassive += (info.passiveTime || 0);
+        }
+
+        splitEl.innerHTML = `${formatTimeCompact(totalActive)} Active &nbsp;&bull;&nbsp; ${formatTimeCompact(totalPassive)} Passive`;
+    }
 }
 
 // ---- SVG Trend Line ----
@@ -302,6 +317,10 @@ function updateSitesTable(merged) {
         const statusLabel = statusType.toUpperCase();
         const durationClass = statusType === 'focus' ? 'focus-dur' : statusType === 'distract' ? 'distract-dur' : '';
 
+        // Backwards compatibility for old data that doesn't have activeTime
+        const aTime = site.activeTime !== undefined ? site.activeTime : site.time;
+        const pTime = site.passiveTime || 0;
+
         html += `
         <div class="site-row">
             <div class="site-domain-cell">
@@ -316,8 +335,9 @@ function updateSitesTable(merged) {
             <div class="site-status-cell">
                 <span class="status-badge ${statusType}">${statusLabel}</span>
             </div>
-            <div class="site-duration-cell ${durationClass}">
-                ${formatTimeDashboard(site.time)}
+            <div class="site-duration-cell ${durationClass}" style="display:flex; flex-direction:column; align-items:flex-end; justify-content:center;">
+                <span style="font-weight:600;">${formatTimeDashboard(site.time)}</span>
+                <span style="font-size:10px; opacity:0.7; margin-top:2px;">${formatTimeCompact(aTime)} A / ${formatTimeCompact(pTime)} P</span>
             </div>
         </div>`;
     });

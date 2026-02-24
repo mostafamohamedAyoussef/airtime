@@ -367,12 +367,24 @@ function categorizeDomain(domain) {
         }
     }
 
-    // 2. Heuristic keyword match for unknown domains
+    // 2. Smart TLD Heuristics
+    if (lower.endsWith('.edu')) return 'education';
+    if (lower.endsWith('.ac.uk')) return 'education';
+    if (lower.endsWith('.gov')) return 'news';
+    if (lower.endsWith('.mil')) return 'other';
+
+    // 3. Heuristic exact keyword match for unknown domains
+    // Split domain up by periods/hyphens to avoid false substring flags (e.g. "thegame.com" -> ["thegame", "com"])
+    const domainParts = lower.split(/[\.\-]/);
+
     for (const [catKey, keywords] of Object.entries(HEURISTICS)) {
         for (const kw of keywords) {
-            // Check if keyword is in the domain name (excluding TLD if possible, but simple inclusion is fine)
-            if (lower.includes(kw)) {
-                return catKey;
+            // Check if keyword is an exact part of the domain, or if the main domain starts/ends with it 
+            // This is safer than simple `.includes()`
+            for (const part of domainParts) {
+                if (part === kw || (part.length > 5 && (part.startsWith(kw) || part.endsWith(kw)))) {
+                    return catKey;
+                }
             }
         }
     }
@@ -500,9 +512,18 @@ function aggregateData(allData, dateKeys) {
         if (!dayData) continue;
         for (const [domain, info] of Object.entries(dayData)) {
             if (!merged[domain]) {
-                merged[domain] = { time: 0, visits: 0, category: info.category || categorizeDomain(domain) };
+                merged[domain] = {
+                    time: 0,
+                    activeTime: 0,
+                    passiveTime: 0,
+                    visits: 0,
+                    category: info.category || categorizeDomain(domain)
+                };
             }
             merged[domain].time += info.time || 0;
+            // Backwards compatibility for old records: if activeTime doesn't exist, assume all time is active
+            merged[domain].activeTime += (info.activeTime !== undefined ? info.activeTime : (info.time || 0));
+            merged[domain].passiveTime += info.passiveTime || 0;
             merged[domain].visits += info.visits || 0;
         }
     }
